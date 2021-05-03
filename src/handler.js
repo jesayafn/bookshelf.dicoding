@@ -101,7 +101,7 @@ const getAllBooksHandler = (request, h) => {
   return response;
 };
 
-const getDetailedBookByIdHandler = (request, h) =>{
+const getDetailedBookHandler = (request, h) =>{
   const {bookId} = request.params;
   const book=books.filter((book) => book.id === bookId)[0];
 
@@ -212,7 +212,7 @@ const deleteBookHandler = (request, h) => {
   response.code(404);
   return response;
 };
-const get = {getAllBooksHandler, getDetailedBookByIdHandler};
+const get = {getAllBooksHandler, getDetailedBookHandler};
 const post = {saveBookHandler};
 const put = {editBookHandler};
 const del = {deleteBookHandler};

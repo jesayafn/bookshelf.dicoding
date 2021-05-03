@@ -22,7 +22,7 @@ const routes = [
   {
     method: 'GET',
     path: '/books/{bookId}',
-    handler: handler.get.getDetailedBookByIdHandler,
+    handler: handler.get.getDetailedBookHandler,
     options: access,
   },
   {
