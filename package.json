@@ -1,23 +1,30 @@
 {
-  "name": "notes-app-back-end",
-  "version": "1.0.0",
-  "description": "",
+  "name": "bookshelf",
+  "version": "0.1.0",
+  "description": "Kursus Dicoding",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon ./src/server.js",
     "lint": "eslint ./src/"
   },
-  "keywords": [],
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jessie-txt/bookshelf.dicoding.git"
+  },
+  "author": "Jesaya Fernando Napitupulu",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jessie-txt/bookshelf.dicoding/issues"
+  },
+  "homepage": "https://github.com/jessie-txt/bookshelf.dicoding#readme",
+  "dependencies": {
+    "@hapi/hapi": "^20.1.2",
+    "nanoid": "^3.1.22"
+  },
   "devDependencies": {
     "eslint": "^7.25.0",
     "eslint-config-google": "^0.14.0",
     "nodemon": "^2.0.7"
-  },
-  "dependencies": {
-    "@hapi/hapi": "^20.1.2",
-    "nanoid": "^3.1.22"
   }
 }

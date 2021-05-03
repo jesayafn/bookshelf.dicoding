@@ -9,32 +9,32 @@ const access = {
 const routes = [
   {
     method: 'POST',
-    path: '/notes',
-    handler: handler.post.addNoteHandler,
+    path: '/books',
+    handler: handler.post.saveBookHandler,
     options: access,
   },
   {
     method: 'GET',
-    path: '/notes',
-    handler: handler.get.getAllNotesHandler,
+    path: '/books',
+    handler: handler.get.getAllBooksHandler,
     options: access,
   },
   {
     method: 'GET',
-    path: '/notes/{id}',
-    handler: handler.get.getNoteByIdHandler,
+    path: '/books/{bookId}',
+    handler: handler.get.getDetailedBookByIdHandler,
     options: access,
   },
   {
     method: 'PUT',
-    path: '/notes/{id}',
-    handler: handler.put.editNoteByIdHandler,
+    path: '/books/{bookId}',
+    handler: handler.put.editBookHandler,
     options: access,
   },
   {
     method: 'DELETE',
-    path: '/notes/{id}',
-    handler: handler.del.deleteNoteByIdHandler,
+    path: '/books/{bookId}',
+    handler: handler.del.deleteBookHandler,
     options: access,
   },
 ];
