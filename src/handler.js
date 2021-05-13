@@ -3,7 +3,7 @@ const books2 = books;
 
 const {nanoid} = require('nanoid');
 
-const saveBookHandler = (request, h) => {
+const saveBookHandler = async (request, h) => {
   const {
     name,
     year,
@@ -52,10 +52,15 @@ const saveBookHandler = (request, h) => {
     insertedAt,
     updatedAt,
   };
-  books.push(newBook);
-
-  const isSuccess = books.filter((book) => book.id === id).length;
-  if (isSuccess) {
+  // books.push(newBook);
+  const dbBooks = request.mongo.db.collection('booksCollection');
+  await dbBooks.insertOne(newBook);
+  // const checking = () => {
+  //   const validating = ;
+  //   return validating;
+  // };
+  const checking = await dbBooks.find({'id': id}).count() === 1;
+  if (checking == true) {
     const response = h.response({
       status: 'success',
       message: 'Buku berhasil ditambahkan',
