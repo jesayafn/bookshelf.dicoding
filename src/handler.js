@@ -1,6 +1,3 @@
-const books = require('./books');
-const books2 = books;
-
 const {nanoid} = require('nanoid');
 
 const saveBookHandler = async (request, h) => {
@@ -52,13 +49,8 @@ const saveBookHandler = async (request, h) => {
     insertedAt,
     updatedAt,
   };
-  // books.push(newBook);
   const dbBooks = request.mongo.db.collection('booksCollection');
   await dbBooks.insertOne(newBook);
-  // const checking = () => {
-  //   const validating = ;
-  //   return validating;
-  // };
   const checking = await dbBooks.find({'id': id}).count() === 1;
   if (checking == true) {
     const response = h.response({
@@ -80,13 +72,32 @@ const saveBookHandler = async (request, h) => {
   return response;
 };
 
-const getAllBooksHandler = (request, h) => {
-  if (Array.isArray(books) || books.length) {
-    const books = books2.map((book) => {
+const getAllBooksHandler = async (request, h) => {
+  const dbBooks = request.mongo.db.collection('booksCollection');
+  const checking = await dbBooks.find({}).count() >= 1;
+  if (checking == true) {
+    const selectBooks = await dbBooks.find({}, {
+      projection: {
+        _id: 0,
+        id: 1,
+        name: 1,
+        publisher: 1,
+      },
+    }).toArray();
+    const books = selectBooks.map((book)=>{
       return {
-        id: book.id, name: book.name, publisher: book.publisher,
+        id: book.id,
+        name: book.id,
+        publisher: book.publisher,
       };
     });
+    // const books = selectBooks
+    //     .map((book)=> ({
+    //       id: book.id,
+    //       name: book.id,
+    //       publisher: book.publisher,
+    //     }),
+    //     );
     const response = h.response({
       status: 'success',
       data: {
@@ -96,21 +107,30 @@ const getAllBooksHandler = (request, h) => {
     response.code(200);
     return response;
   }
+  const books = [{
+    'id': 'no data',
+    'name': 'no data',
+    'publisher': 'no data',
+  }];
   const response = h.response({
     status: 'success',
     data: {
-      hasil,
+      books,
     },
   });
   response.code(200);
   return response;
 };
 
-const getDetailedBookHandler = (request, h) =>{
+const getDetailedBookHandler = async (request, h) =>{
   const {bookId} = request.params;
-  const book=books.filter((book) => book.id === bookId)[0];
-
-  if (book !== undefined) {
+  const dbBooks = request.mongo.db.collection('booksCollection');
+  const checking = await dbBooks.find({'id': bookId}).count() == 1;
+  if (checking === true) {
+    const selectBooks = await dbBooks.find({'id': bookId}, {projection: {
+      _id: 0,
+    }}).toArray();
+    const book = await selectBooks.filter((book)=> book.id === bookId)[0];
     const response = h.response({
       status: 'success',
       data: {
@@ -121,7 +141,7 @@ const getDetailedBookHandler = (request, h) =>{
     return response;
   }
 
-  if (book === undefined) {
+  if (checking === false) {
     const response = h.response({
       status: 'fail',
       message: 'Buku tidak ditemukan',
@@ -131,7 +151,7 @@ const getDetailedBookHandler = (request, h) =>{
   }
 };
 
-const editBookHandler = (request, h) => {
+const editBookHandler = async (request, h) => {
   const {bookId} = request.params;
 
   const {
@@ -165,21 +185,23 @@ const editBookHandler = (request, h) => {
     response.code(400);
     return response;
   }
-  const index = books.findIndex((book) => book.id === bookId);
+  // const index = books.findIndex((book) => book.id === bookId);
+  const updateBook = {
+    name,
+    year,
+    author,
+    summary,
+    publisher,
+    pageCount,
+    readPage,
+    reading,
+    updatedAt,
+  };
+  const dbBooks = request.mongo.db.collection('booksCollection');
+  const checking = await dbBooks.find({'id': bookId}).count() == 1;
 
-  if (index !== -1) {
-    books[index] = {
-      ...books[index],
-      name,
-      year,
-      author,
-      summary,
-      publisher,
-      pageCount,
-      readPage,
-      reading,
-      updatedAt,
-    };
+  if (checking === true) {
+    await dbBooks.updateOne({'id': bookId}, {$set: updateBook});
     const response = h.response({
       status: 'success',
       message: 'Buku berhasil diperbarui',
@@ -196,12 +218,12 @@ const editBookHandler = (request, h) => {
   return response;
 };
 
-const deleteBookHandler = (request, h) => {
+const deleteBookHandler = async (request, h) => {
   const {bookId} = request.params;
-
-  const index = books.findIndex((book) => book.id === bookId);
-  if (index !== -1) {
-    books.splice(index, 1);
+  const dbBooks = request.mongo.db.collection('booksCollection');
+  const checking = await dbBooks.find({'id': bookId}).count() == 1;
+  if (checking === true) {
+    await dbBooks.deleteOne({'id': bookId});
     const response = h.response({
       status: 'success',
       message: 'Buku berhasil dihapus',
