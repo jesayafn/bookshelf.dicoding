@@ -76,7 +76,7 @@ const getAllBooksHandler = async (request, h) => {
   const dbBooks = request.mongo.db.collection('booksCollection');
   const checking = await dbBooks.find({}).count() >= 1;
   if (checking == true) {
-    const selectBooks = await dbBooks.find({}, {
+    const books = await dbBooks.find({}, {
       projection: {
         _id: 0,
         id: 1,
@@ -84,20 +84,6 @@ const getAllBooksHandler = async (request, h) => {
         publisher: 1,
       },
     }).toArray();
-    const books = selectBooks.map((book)=>{
-      return {
-        id: book.id,
-        name: book.id,
-        publisher: book.publisher,
-      };
-    });
-    // const books = selectBooks
-    //     .map((book)=> ({
-    //       id: book.id,
-    //       name: book.id,
-    //       publisher: book.publisher,
-    //     }),
-    //     );
     const response = h.response({
       status: 'success',
       data: {
@@ -185,7 +171,6 @@ const editBookHandler = async (request, h) => {
     response.code(400);
     return response;
   }
-  // const index = books.findIndex((book) => book.id === bookId);
   const updateBook = {
     name,
     year,
