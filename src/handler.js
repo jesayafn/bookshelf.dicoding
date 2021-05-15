@@ -1,4 +1,5 @@
 const {nanoid} = require('nanoid');
+const handlerTask = require('./handlerTask');
 
 const saveBookHandler = async (request, h) => {
   const {
@@ -72,11 +73,32 @@ const saveBookHandler = async (request, h) => {
   return response;
 };
 
-const getAllBooksHandler = async (request, h) => {
+const getBooksHandler = async (request, h) => {
+  const {reading} = request.query;
+  const {bookId} = request.params;
+
   const dbBooks = request.mongo.db.collection('booksCollection');
   const checking = await dbBooks.find({}).count() >= 1;
-  if (checking == true) {
-    const books = await dbBooks.find({}, {
+  if (bookId !== undefined && reading === undefined && checking == true) {
+    const book = await dbBooks.find({'id': `${bookId}`}, {
+      projection: {
+        _id: 0,
+      },
+    }).toArray();
+    const response = h.response({
+      status: 'success',
+      data: {
+        book,
+      },
+    });
+    response.code(200);
+    return response;
+  };
+  if (reading !== undefined &&
+    reading == 'yes' &&
+    bookId === undefined &&
+    checking === true) {
+    const books = await dbBooks.find({'reading': true}, {
       projection: {
         _id: 0,
         id: 1,
@@ -92,49 +114,34 @@ const getAllBooksHandler = async (request, h) => {
     });
     response.code(200);
     return response;
-  }
-  const books = [{
-    'id': 'no data',
-    'name': 'no data',
-    'publisher': 'no data',
-  }];
-  const response = h.response({
-    status: 'success',
-    data: {
-      books,
-    },
-  });
-  response.code(200);
-  return response;
-};
-
-const getDetailedBookHandler = async (request, h) =>{
-  const {bookId} = request.params;
-  const dbBooks = request.mongo.db.collection('booksCollection');
-  const checking = await dbBooks.find({'id': bookId}).count() == 1;
-  if (checking === true) {
-    const selectBooks = await dbBooks.find({'id': bookId}, {projection: {
-      _id: 0,
-    }}).toArray();
-    const book = await selectBooks.filter((book)=> book.id === bookId)[0];
+  };
+  if (bookId === undefined &&
+    reading === undefined &&
+    checking === true) {
+    const books = await dbBooks.find({}, {
+      projection: {
+        _id: 0,
+        id: 1,
+        name: 1,
+        publisher: 1,
+      }}).toArray();
     const response = h.response({
       status: 'success',
       data: {
-        book,
+        books,
       },
     });
     response.code(200);
     return response;
   }
-
-  if (checking === false) {
-    const response = h.response({
-      status: 'fail',
-      message: 'Buku tidak ditemukan',
-    });
-    response.code(404);
-    return response;
-  }
+  const response = h.response({
+    status: 'success',
+    data: {
+      books: handlerTask.noData,
+    },
+  });
+  response.code(200);
+  return response;
 };
 
 const editBookHandler = async (request, h) => {
@@ -155,7 +162,7 @@ const editBookHandler = async (request, h) => {
   'Mohon isi nama buku';
   const failMessage2 = 'Gagal memperbarui buku. '+
   'readPage tidak boleh lebih besar dari pageCount';
-  if (name == null) {
+  if (name === null) {
     const response = h.response({
       status: 'fail',
       message: failMessage1,
@@ -224,7 +231,7 @@ const deleteBookHandler = async (request, h) => {
   response.code(404);
   return response;
 };
-const get = {getAllBooksHandler, getDetailedBookHandler};
+const get = {getBooksHandler};
 const post = {saveBookHandler};
 const put = {editBookHandler};
 const del = {deleteBookHandler};
