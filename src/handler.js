@@ -1,5 +1,4 @@
 const {nanoid} = require('nanoid');
-const handlerTask = require('./handlerTask');
 
 const saveBookHandler = async (request, h) => {
   const {
@@ -76,8 +75,12 @@ const saveBookHandler = async (request, h) => {
 const getBooksHandler = async (request, h) => {
   const {reading} = request.query;
   const {bookId} = request.params;
+  const noData = [{
+    'id': 'no data',
+    'name': 'no data',
+    'publisher': 'no data',
+  }];
 
-  const dbBooks = request.mongo.db.collection('booksCollection');
   const checking = await dbBooks.find({}).count() >= 1;
   if (bookId !== undefined && reading === undefined && checking == true) {
     const book = await dbBooks.find({'id': `${bookId}`}, {
@@ -134,10 +137,11 @@ const getBooksHandler = async (request, h) => {
     response.code(200);
     return response;
   }
+
   const response = h.response({
     status: 'success',
     data: {
-      books: handlerTask.noData,
+      books: noData,
     },
   });
   response.code(200);

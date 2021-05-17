@@ -1,15 +1,16 @@
 const Hapi = require('@hapi/hapi');
 const routes = require('./routes');
+const config = require('./configuration');
 
 const init = async () => {
   const server = Hapi.server({
-    port: 5000,
-    host: 'localhost',
+    port: config.serverConfiguration.port,
+    host: config.serverConfiguration.hostname,
   });
   await server.register({
     plugin: require('hapi-mongodb'),
     options: {
-      url: 'mongodb://localhost:27017/bookshelf',
+      url: config.serverConfiguration.database,
       settings: {
         useUnifiedTopology: true,
       },

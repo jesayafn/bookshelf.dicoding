@@ -19,12 +19,6 @@ const routes = [
     handler: handler.get.getBooksHandler,
     options: access,
   },
-  // {
-  //   method: 'GET',
-  //   path: '/books/{bookId}',
-  //   handler: handler.get.getDetailedBookHandler,
-  //   options: access,
-  // },
   {
     method: 'PUT',
     path: '/books/{bookId}',
