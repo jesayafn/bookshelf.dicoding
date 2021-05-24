@@ -1,4 +1,10 @@
 const {nanoid} = require('nanoid');
+// Belum digunakan
+const logManipulationData = (username, logData) => {
+  logId = nanoid(30);
+  request.app.db.query(`CALL bookManipulation (`+
+  `${logId},${dateTimeLog},${username},${logData})`);
+};
 
 const saveBookHandler = async (request, h) => {
   const {
@@ -31,10 +37,11 @@ const saveBookHandler = async (request, h) => {
     response.code(400);
     return response;
   }
-  const id = nanoid(16);
+  const id = nanoid(20);
   const insertedAt = new Date().toISOString();
   const updatedAt = insertedAt;
   const finished = (pageCount === readPage) ? true : false;
+  const deleted = false;
   const newBook = {
     id,
     name,
@@ -48,6 +55,7 @@ const saveBookHandler = async (request, h) => {
     reading,
     insertedAt,
     updatedAt,
+    deleted,
   };
   const dbBooks = request.mongo.db.collection('booksCollection');
   await dbBooks.insertOne(newBook);
@@ -80,22 +88,49 @@ const getBooksHandler = async (request, h) => {
     'name': 'no data',
     'publisher': 'no data',
   }];
+  const noDetailedData = {
+    message: 'not found',
+  };
 
   const checking = await dbBooks.find({}).count() >= 1;
   if (bookId !== undefined && reading === undefined && checking == true) {
-    const book = await dbBooks.find({'id': `${bookId}`}, {
-      projection: {
-        _id: 0,
-      },
-    }).toArray();
-    const response = h.response({
-      status: 'success',
-      data: {
-        book,
-      },
-    });
-    response.code(200);
-    return response;
+    const checkingId = await dbBooks.find({'id': bookId}).count() == 1;
+    if (checkingId === true) {
+      const book = await dbBooks.find({'id': `${bookId}`}, {
+        projection: {
+          _id: 0,
+          deleted: 0,
+        },
+      }).toArray();
+      if (book[0].deleted === true) {
+        const response = h.response({
+          status: 'fail',
+          data: {
+            noDetailedData,
+          },
+        });
+        response.code(404);
+        return response;
+      } else {
+        const response = h.response({
+          status: 'success',
+          data: {
+            book,
+          },
+        });
+        response.code(200);
+        return response;
+      }
+    } else {
+      const response = h.response({
+        status: 'fail',
+        data: {
+          noDetailedData,
+        },
+      });
+      response.code(404);
+      return response;
+    }
   };
   if (reading !== undefined &&
     reading == 'yes' &&

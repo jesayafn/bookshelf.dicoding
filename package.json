@@ -19,8 +19,12 @@
   },
   "homepage": "https://github.com/jessie-txt/bookshelf.dicoding#readme",
   "dependencies": {
+    "@hapi/basic": "^6.0.0",
     "@hapi/hapi": "^20.1.2",
+    "bcrypt": "^5.0.1",
+    "crypto-js": "^4.0.0",
     "hapi-mongodb": "^9.0.2",
+    "hapi-plugin-mysql": "^7.2.4",
     "nanoid": "^3.1.22"
   },
   "devDependencies": {

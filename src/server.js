@@ -7,7 +7,7 @@ const init = async () => {
     port: config.serverConfiguration.port,
     host: config.serverConfiguration.hostname,
   });
-  await server.register({
+  await server.register([{
     plugin: require('hapi-mongodb'),
     options: {
       url: config.serverConfiguration.database,
@@ -16,7 +16,15 @@ const init = async () => {
       },
       decorate: true,
     },
-  });
+  },
+  {
+    plugin: require('hapi-plugin-mysql'),
+    options: {
+      host: 'localhost',
+      user: 'backEndBookshelf',
+      password: '&Uh9ruhLFB4r',
+    },
+  }]);
   server.route(routes);
 
   await server.start();
