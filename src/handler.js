@@ -1,10 +1,10 @@
 const {nanoid} = require('nanoid');
 // Belum digunakan
-const logManipulationData = (username, logData) => {
-  logId = nanoid(30);
-  request.app.db.query(`CALL bookManipulation (`+
-  `${logId},${dateTimeLog},${username},${logData})`);
-};
+// const logManipulationData = (username, logData) => {
+//   logId = nanoid(30);
+//   request.app.db.query(`CALL bookManipulation (`+
+//   `${logId},${dateTimeLog},${username},${logData})`);
+// };
 
 const saveBookHandler = async (request, h) => {
   const {
@@ -91,18 +91,14 @@ const getBooksHandler = async (request, h) => {
   const noDetailedData = {
     message: 'not found',
   };
-
+  const dbBooks = request.mongo.db.collection('booksCollection');
   const checking = await dbBooks.find({}).count() >= 1;
-  if (bookId !== undefined && reading === undefined && checking == true) {
+  if (bookId !== undefined && reading === undefined) {
     const checkingId = await dbBooks.find({'id': bookId}).count() == 1;
     if (checkingId === true) {
-      const book = await dbBooks.find({'id': `${bookId}`}, {
-        projection: {
-          _id: 0,
-          deleted: 0,
-        },
-      }).toArray();
-      if (book[0].deleted === true) {
+      const checkingIdDeleted = await dbBooks.find({'id': bookId,
+        'deleted': true}).count() == 1;
+      if (checkingIdDeleted === true) {
         const response = h.response({
           status: 'fail',
           data: {
@@ -111,7 +107,14 @@ const getBooksHandler = async (request, h) => {
         });
         response.code(404);
         return response;
-      } else {
+      }
+      if (checkingIdDeleted === false) {
+        const book = await dbBooks.find({'id': `${bookId}`}, {
+          projection: {
+            _id: 0,
+            deleted: 0,
+          },
+        }).toArray();
         const response = h.response({
           status: 'success',
           data: {
@@ -121,29 +124,24 @@ const getBooksHandler = async (request, h) => {
         response.code(200);
         return response;
       }
-    } else {
-      const response = h.response({
-        status: 'fail',
-        data: {
-          noDetailedData,
-        },
-      });
-      response.code(404);
-      return response;
     }
   };
   if (reading !== undefined &&
     reading == 'yes' &&
     bookId === undefined &&
     checking === true) {
-    const books = await dbBooks.find({'reading': true}, {
-      projection: {
-        _id: 0,
-        id: 1,
-        name: 1,
-        publisher: 1,
-      },
+    const gatherBooks = await dbBooks.find({'reading': true,
+      'deleted': false},
+    {projection: {
+      _id: 0,
+      id: 1,
+      name: 1,
+      publisher: 1,
+    },
     }).toArray();
+    const checkReadingBooks = await dbBooks.find({'reading': true,
+      'deleted': false}).count() == 0;
+    const books = (checkReadingBooks === false) ? gatherBooks : noData;
     const response = h.response({
       status: 'success',
       data: {
@@ -154,15 +152,17 @@ const getBooksHandler = async (request, h) => {
     return response;
   };
   if (bookId === undefined &&
-    reading === undefined &&
-    checking === true) {
-    const books = await dbBooks.find({}, {
+    reading === undefined) {
+    const gatherBooks = await dbBooks.find({'deleted': false}, {
       projection: {
         _id: 0,
         id: 1,
         name: 1,
         publisher: 1,
       }}).toArray();
+    const checkReadingBooks = await dbBooks.find({'deleted': false,
+    }).count() == 0;
+    const books = (checkReadingBooks === false) ? gatherBooks : noData;
     const response = h.response({
       status: 'success',
       data: {
@@ -172,15 +172,6 @@ const getBooksHandler = async (request, h) => {
     response.code(200);
     return response;
   }
-
-  const response = h.response({
-    status: 'success',
-    data: {
-      books: noData,
-    },
-  });
-  response.code(200);
-  return response;
 };
 
 const editBookHandler = async (request, h) => {
@@ -196,6 +187,7 @@ const editBookHandler = async (request, h) => {
     readPage,
     reading,
   } = request.payload;
+  const finished = (pageCount === readPage) ? true : false;
   const updatedAt = new Date().toISOString();
   const failMessage1 = 'Gagal memperbarui buku. '+
   'Mohon isi nama buku';
@@ -225,6 +217,7 @@ const editBookHandler = async (request, h) => {
     publisher,
     pageCount,
     readPage,
+    finished,
     reading,
     updatedAt,
   };
@@ -254,7 +247,8 @@ const deleteBookHandler = async (request, h) => {
   const dbBooks = request.mongo.db.collection('booksCollection');
   const checking = await dbBooks.find({'id': bookId}).count() == 1;
   if (checking === true) {
-    await dbBooks.deleteOne({'id': bookId});
+    // await dbBooks.deleteOne({'id': bookId});
+    await dbBooks.updateOne({'id': bookId}, {$set: {deleted: true}});
     const response = h.response({
       status: 'success',
       message: 'Buku berhasil dihapus',

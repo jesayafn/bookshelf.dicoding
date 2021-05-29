@@ -1,7 +1,11 @@
 const Hapi = require('@hapi/hapi');
 const routes = require('./routes');
 const config = require('./configuration');
-
+const CryptoJS = require('crypto-js');
+const mongoDbUrlparse = CryptoJS.enc.Base64.parse(
+    config.serverConfiguration.database);
+const mongoDbUrl = CryptoJS.enc.Utf8.stringify(mongoDbUrlparse);
+console.log(mongoDbUrl);
 const init = async () => {
   const server = Hapi.server({
     port: config.serverConfiguration.port,
@@ -10,7 +14,7 @@ const init = async () => {
   await server.register([{
     plugin: require('hapi-mongodb'),
     options: {
-      url: config.serverConfiguration.database,
+      url: mongoDbUrl,
       settings: {
         useUnifiedTopology: true,
       },
