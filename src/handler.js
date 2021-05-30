@@ -172,6 +172,12 @@ const getBooksHandler = async (request, h) => {
     response.code(200);
     return response;
   }
+  const response = h.response({
+    status: 'fail',
+    message: 'Bad request',
+  });
+  response.code(400);
+  return response;
 };
 
 const editBookHandler = async (request, h) => {
@@ -222,7 +228,8 @@ const editBookHandler = async (request, h) => {
     updatedAt,
   };
   const dbBooks = request.mongo.db.collection('booksCollection');
-  const checking = await dbBooks.find({'id': bookId}).count() == 1;
+  const checking = await dbBooks.find({'id': bookId,
+    'deleted': false}).count() == 1;
 
   if (checking === true) {
     await dbBooks.updateOne({'id': bookId}, {$set: updateBook});
@@ -245,9 +252,9 @@ const editBookHandler = async (request, h) => {
 const deleteBookHandler = async (request, h) => {
   const {bookId} = request.params;
   const dbBooks = request.mongo.db.collection('booksCollection');
-  const checking = await dbBooks.find({'id': bookId}).count() == 1;
+  const checking = await dbBooks.find({'id': bookId,
+    'deleted': false}).count() == 1;
   if (checking === true) {
-    // await dbBooks.deleteOne({'id': bookId});
     await dbBooks.updateOne({'id': bookId}, {$set: {deleted: true}});
     const response = h.response({
       status: 'success',
@@ -256,13 +263,14 @@ const deleteBookHandler = async (request, h) => {
     response.code(200);
     return response;
   }
-
-  const response = h.response({
-    status: 'fail',
-    message: 'Buku gagal dihapus. Id tidak ditemukan',
-  });
-  response.code(404);
-  return response;
+  if (checking === false) {
+    const response = h.response({
+      status: 'fail',
+      message: 'Buku gagal dihapus. Id tidak ditemukan',
+    });
+    response.code(404);
+    return response;
+  }
 };
 const get = {getBooksHandler};
 const post = {saveBookHandler};

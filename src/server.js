@@ -2,10 +2,13 @@ const Hapi = require('@hapi/hapi');
 const routes = require('./routes');
 const config = require('./configuration');
 const CryptoJS = require('crypto-js');
+
+
 const mongoDbUrlparse = CryptoJS.enc.Base64.parse(
     config.serverConfiguration.database);
 const mongoDbUrl = CryptoJS.enc.Utf8.stringify(mongoDbUrlparse);
 console.log(mongoDbUrl);
+
 const init = async () => {
   const server = Hapi.server({
     port: config.serverConfiguration.port,
@@ -22,13 +25,12 @@ const init = async () => {
     },
   },
   {
-    plugin: require('hapi-plugin-mysql'),
-    options: {
-      host: 'localhost',
-      user: 'backEndBookshelf',
-      password: '&Uh9ruhLFB4r',
-    },
-  }]);
+    plugin: require('@hapi/basic'),
+  },
+  ]);
+  // server.auth.strategy('simple', 'basic', {
+  //   validate: async (request, username, password) => {}
+  // server.auth.default('simple');
   server.route(routes);
 
   await server.start();
